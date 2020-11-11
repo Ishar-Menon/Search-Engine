@@ -7,7 +7,7 @@ from nltk.corpus import stopwords
 from nltk.corpus import wordnet as wn
 from nltk.stem.wordnet import WordNetLemmatizer
 from contractions import contractions_dict
-from autocorrect import spell
+from autocorrect import Speller
 
 
 def preProcess(text, isQuery=False):
@@ -42,8 +42,11 @@ def preProcess(text, isQuery=False):
     text = strip_punctuation(text)
     tokens = word_tokenize(text)
 
+    if isQuery:
+        spell = Speller(lang='en')
+        tokens = [spell(w) for w in tokens]
+
     stopword = stopwords.words('english')
-    # print(sorted(stopword))
     tokens_removed_stopwords = []
     tokens_with_pos = []
     pos = 0
