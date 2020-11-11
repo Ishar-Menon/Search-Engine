@@ -1,4 +1,4 @@
-def generateOutput(self, docList):
+def generateOutput(docList):
         """
         Generates json formated output
 
