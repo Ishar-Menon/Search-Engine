@@ -17,7 +17,6 @@ class InvertedIndex:
             List of document numbers
         """
 
-        termList = termList.split(" ") if type(termList) == str else termList
         result = []
 
         for term in termList:
@@ -26,7 +25,7 @@ class InvertedIndex:
 
         return result
 
-    def updateIndex(self, docText, docId):
+    def updateIndex(self, docTokens, docId):
         """
             Updates the inverted index
 
@@ -38,9 +37,7 @@ class InvertedIndex:
             None
         """
 
-        docWords = docText.split(" ") if type(docText) == str else docText
-
-        for wordIndex, word in enumerate(docWords):
+        for word, wordIndex in docTokens:
             postingList = self._btree.get(word)
             if postingList is not None:
                 docIds = [doc[0] for doc in postingList]
@@ -52,3 +49,14 @@ class InvertedIndex:
             else:
                 postingList = [(docId, [wordIndex])]
                 self._btree.insert(word, postingList)
+
+        # for word, wordIndex in docTokens:
+        #     postingList = self._btree.get(word)
+        #     if postingList is not None:
+        #         if docId in postingList:
+        #             postingList[docId].append(wordIndex)
+        #         else:
+        #             postingList[docId] = [wordIndex]
+        #     else:
+        #         postingList = {docId: [wordIndex]}
+        #         self._btree.insert(word, postingList)
