@@ -43,7 +43,7 @@ def preProcess(text, isQuery=False):
     tokens = word_tokenize(text)
 
     stopword = stopwords.words('english')
-    print(sorted(stopword))
+    # print(sorted(stopword))
     tokens_removed_stopwords = []
     tokens_with_pos = []
     pos = 0
