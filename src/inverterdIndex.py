@@ -1,4 +1,6 @@
 import os
+import pickle
+import sys
 from BTrees.OOBTree import OOBTree as BTree
 from preProcess import preProcess
 from readData import getSnippets
@@ -20,21 +22,30 @@ class InvertedIndex:
             Returns:
             None
         """
+        try:
+            fh = open ("Btree.txt", "rb")
+            self._btree = pickle.load(fh)
 
-        dirPath = os.path.dirname(os.path.realpath(__file__))
-        dataPath = os.path.realpath(os.path.join(dirPath, "..", "data"))
-        files = [os.path.join(dataPath, file)
-                 for file in sorted(os.listdir(dataPath))]
+        except FileNotFoundError:
+            dirPath = os.path.dirname(os.path.realpath(__file__))
+            dataPath = os.path.realpath(os.path.join(dirPath, "..", "data"))
+            files = [os.path.join(dataPath, file)
+                    for file in sorted(os.listdir(dataPath))]
 
-        for file in files:
-            snippets = getSnippets(file)
-            for index, snippet in enumerate(snippets):
-                filename = os.path.split(file)[1]
-                docId = f"{filename}_{index+2}"
+            for file in files:
+                snippets = getSnippets(file)
+                for index, snippet in enumerate(snippets):
+                    filename = os.path.split(file)[1]
+                    docId = f"{filename}_{index+2}"
 
-                tokens = preProcess(snippet)
-                self.updateIndex(tokens, docId)
+                    tokens = preProcess(snippet)
+                    self.updateIndex(tokens, docId)
 
+            sys.setrecursionlimit(10000)
+
+            with open("Btree.txt", 'wb') as fh:
+                pickle.dump(self._btree, fh)
+        
     def getDocuments(self, termList):
         """
             Finds the documents containing the terms
