@@ -1,2 +1,4 @@
 BTrees==4.7.2
 pandas==0.25.1
+nltk==3.5
+autocorrect==2.2.2
