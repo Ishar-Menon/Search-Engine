@@ -1,4 +1,4 @@
-def preProcess(self,query):
+def preProcess(query):
     """ 
     Performs pre processing on the given query
 

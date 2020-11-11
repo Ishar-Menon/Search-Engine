@@ -1,4 +1,4 @@
-def vectorSpaceRank(self, docList):
+def vectorSpaceRank(docList):
     """
     ranks the documents
 
