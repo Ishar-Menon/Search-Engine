@@ -34,8 +34,8 @@ class SearchEngine:
                 filename = os.path.split(file)[1]
                 docId = f"{filename}_{index+2}"
 
-                termList = preProcess(snippet)
-                self._index.updateIndex(termList, docId)
+                tokens = preProcess(snippet)
+                self._index.updateIndex(tokens, docId)
 
     def search(self, query):
         """
@@ -48,7 +48,7 @@ class SearchEngine:
             JSON formatted documet output
         """
 
-        termList = preProcess(query)
+        termList = preProcess(query, True)
 
         docList = self._index.getDocuments(termList)
 
@@ -56,4 +56,4 @@ class SearchEngine:
 
         output = generateOutput(rankedDocList)
 
-        return docList
+        return output
