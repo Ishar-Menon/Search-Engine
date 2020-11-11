@@ -39,6 +39,7 @@ def preProcess(text, isQuery=False):
     expanded_text = re.sub("'", "", expanded_text)
     text = expanded_text
 
+    text = text.lower()
     text = strip_punctuation(text)
     tokens = word_tokenize(text)
 
