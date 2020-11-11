@@ -3,7 +3,6 @@ from preProcess import preProcess
 from inverterdIndex import InvertedIndex
 from vectorSpace import vectorSpaceRank
 from output import generateOutput
-from readData import getSnippets
 
 
 class SearchEngine:
@@ -11,31 +10,6 @@ class SearchEngine:
     def __init__(self):
         super().__init__()
         self._index = InvertedIndex()
-
-    def build(self):
-        """ 
-            Reads files one-by-one and builds the index
-
-            Arguments:
-            None
-
-            Returns:
-            None
-        """
-
-        dirPath = os.path.dirname(os.path.realpath(__file__))
-        dataPath = os.path.realpath(os.path.join(dirPath, "..", "data"))
-        files = [os.path.join(dataPath, file)
-                 for file in sorted(os.listdir(dataPath))]
-
-        for file in files:
-            snippets = getSnippets(file)
-            for index, snippet in enumerate(snippets):
-                filename = os.path.split(file)[1]
-                docId = f"{filename}_{index+2}"
-
-                tokens = preProcess(snippet)
-                self._index.updateIndex(tokens, docId)
 
     def search(self, query):
         """
