@@ -7,3 +7,4 @@ if __name__ == "__main__":
 
     query = "office"
     res = engine.search(query)
+    print(res)
