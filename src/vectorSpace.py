@@ -1,4 +1,6 @@
 import math
+from BTrees.OOBTree import OOBTree as BTree
+
 def normalize(vectors):
     denominator = 0
     for values in vectors:
@@ -14,7 +16,7 @@ class VectorSpace:
     def __init__(self,_index):
         super().__init__()
         self.N = 94858
-        self.docVectors ={}
+        self.docVectors = BTree()
         self.wordIndex ={}
         self.i=-1
         self.buildVector(_index)
@@ -23,7 +25,7 @@ class VectorSpace:
         print("starting")
         terms = list(_index.getKeys())
         self.totalTerms = len(terms)
-        #print(self.totalTerms)
+        print(self.totalTerms)
         termValues = list(_index.getValues())
         for word,postingList in zip(terms,termValues):
             numDocs = len(postingList)
@@ -35,17 +37,29 @@ class VectorSpace:
                 freq = len(docTuple[1])
                 tf = 1+(math.log10(freq))
                 documentNo = docTuple[0]
+                vector = self.docVectors.get(documentNo)
+                if vector is not None:
+                    vector[self.i]=tf*idf
+                else:
+                    vectorForDocument = [0]*self.totalTerms
+                    vectorForDocument[self.i]=tf*idf
+                    self.docVectors.insert(documentNo,vectorForDocument)
+                '''
                 if documentNo in self.docVectors:
                     self.docVectors[documentNo][self.i]=tf*idf
                 else:
                     self.docVectors[documentNo]=[0]*self.totalTerms
                     self.docVectors[documentNo][self.i]=tf*idf
-        
+                '''
             #print(self.i," ",idf)
             self.wordIndex[word]=(self.i,idf)
         
-        for documentVectors in self.docVectors:
-            self.docVectors[documentVectors]=normalize(self.docVectors[documentVectors])
+        allDocuments = list(self.docVectors.keys())
+        for doc in allDocuments:
+            documentVector = self.docVectors.get(doc)
+            documentVector = normalize(documentVector)
+
+            #self.docVectors[documentVectors]=normalize(self.docVectors[documentVectors])
         
 
     def dotProduct(self,vector1,vector2):
@@ -68,7 +82,7 @@ class VectorSpace:
         queryVector = self.getQueryVector(query)
         rankList = []
         for doc in documents:
-            docVector = self.docVectors[doc]
+            docVector = self.docVectors.get(doc)
             score = self.dotProduct(docVector,queryVector)
             scoreDocumentTuple = (score,doc)
             rankList.append(scoreDocumentTuple)

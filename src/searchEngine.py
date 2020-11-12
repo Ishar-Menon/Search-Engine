@@ -10,7 +10,7 @@ class SearchEngine:
     def __init__(self):
         super().__init__()
         self._index = InvertedIndex()
-        #self._vectorSpace = VectorSpace(self._index)
+        self._vectorSpace = VectorSpace(self._index)
 
     def search(self, query):
         """
