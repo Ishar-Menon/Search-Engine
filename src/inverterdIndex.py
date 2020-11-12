@@ -45,7 +45,14 @@ class InvertedIndex:
 
             with open("Btree.txt", 'wb') as fh:
                 pickle.dump(self._btree, fh)
+
+    def getKeys(self):
+        return self._btree.keys()
+
+    def getValues(self):
+        return self._btree.values()
         
+
     def getDocuments(self, termList):
         """
             Finds the documents containing the terms
