@@ -26,8 +26,6 @@ class SearchEngine:
         termList = preProcess(query, True)
 
         docList = self._index.getDocuments(termList)
-
-        rankedDocList = self._vectorSpace.vectorSpaceRank(docList,query)
+        rankedDocList = self._vectorSpace.vectorSpaceRank(docList,termList)
         #output = generateOutput(rankedDocList)
         return rankedDocList
-        #return docList

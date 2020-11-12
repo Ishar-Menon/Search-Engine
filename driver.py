@@ -5,6 +5,6 @@ from searchEngine import SearchEngine
 if __name__ == "__main__":
     engine = SearchEngine()
 
-    query = "office"
+    query = "another billion and a half people"
     res = engine.search(query)
     print(res)
