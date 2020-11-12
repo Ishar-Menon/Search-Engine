@@ -61,9 +61,45 @@ class InvertedIndex:
 
         for term in termList:
             postingList = self._btree.get(term)
-            result.append(postingList)
+            if(postingList != None):
+                result.append(postingList)
+            else:
+                result.append([])
 
-        return result
+        docList = self.documentIntersection(result)
+        return docList
+
+    def documentIntersection(self,documents):
+
+            #print(documents)
+            documents.sort(key = lambda x : len(x), reverse = True)
+
+            while(len(documents) > 1):
+                list1 = documents.pop()
+                list2 = documents.pop()
+
+                ptr1 = 0
+                ptr2 = 0
+                
+                intersection = []
+
+                while(ptr1 < len(list1) and ptr2 < len(list2)):
+                    elem1 = int(list1[ptr1][0].split('_')[1])
+                    elem2 = int(list2[ptr2][0].split('_')[1])
+
+                    if(elem1 == elem2):
+                        intersection.append((list1[ptr1][0], []))
+                        ptr1 += 1
+                        ptr2 += 1
+                    elif(elem1 < elem2):
+                        ptr1 += 1
+                    else:
+                        ptr2 += 1
+
+                documents.append(intersection)
+            
+            docNolist = [x[0] for x in documents[0]]
+            return docNolist
 
     def updateIndex(self, docTokens, docId):
         """

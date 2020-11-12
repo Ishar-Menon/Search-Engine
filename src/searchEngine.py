@@ -26,8 +26,8 @@ class SearchEngine:
 
         docList = self._index.getDocuments(termList)
 
-        rankedDocList = vectorSpaceRank(docList)
+        # rankedDocList = vectorSpaceRank(docList)
 
-        output = generateOutput(rankedDocList)
+        # output = generateOutput(rankedDocList)
 
-        return output
+        return docList
