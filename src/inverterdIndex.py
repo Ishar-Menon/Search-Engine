@@ -13,7 +13,7 @@ class InvertedIndex:
         self.build()
 
     def build(self):
-        """ 
+        """
             Reads files one-by-one and builds the index
 
             Arguments:
@@ -22,44 +22,44 @@ class InvertedIndex:
             Returns:
             None
         """
-        try:
-            fh = open ("Btree.txt", "rb")
-            self._btree = pickle.load(fh)
-
-        except FileNotFoundError:
+        if os.path.isfile("InvertedIndex"):
+            print("Loading the Inverted Index from file")
+            with open("InvertedIndex", "rb") as file:
+                self._btree = pickle.load(file)
+        else:
+            print("Building the Inverted Index")
             dirPath = os.path.dirname(os.path.realpath(__file__))
             dataPath = os.path.realpath(os.path.join(dirPath, "..", "data"))
             files = [os.path.join(dataPath, file)
-                    for file in sorted(os.listdir(dataPath))]
+                     for file in sorted(os.listdir(dataPath))]
 
             for file in files:
                 snippets = getSnippets(file)
                 for index, snippet in enumerate(snippets):
                     filename = int(os.path.split(file)[1].split(".csv")[0])
-                    docId = (filename,index+2)
+                    docId = (filename, index+2)
                     tokens = preProcess(snippet)
                     self.updateIndex(tokens, docId)
 
             self.sortPostingLists()
 
             sys.setrecursionlimit(10000)
-
-            with open("Btree.txt", 'wb') as fh:
-                pickle.dump(self._btree, fh)
+            with open("InvertedIndex", "wb") as file:
+                print("Saving the Inverted Index to file")
+                pickle.dump(self._btree, file)
 
     def sortPostingLists(self):
         words = list(self.getKeys())
-        
+
         for word in words:
             postingList = self._btree.get(word)
-            postingList.sort( key = lambda x : ( (10000*x[0][0]) +  x[0][1] ) )
+            postingList.sort(key=lambda x: ((10000*x[0][0]) + x[0][1]))
 
     def getKeys(self):
         return self._btree.keys()
 
     def getValues(self):
         return self._btree.values()
-        
 
     def getDocuments(self, termList):
         """
@@ -84,42 +84,42 @@ class InvertedIndex:
         docList = self.documentIntersection(result)
         return docList
 
-    def documentIntersection(self,documents):
+    def documentIntersection(self, documents):
 
-            documents.sort(key = lambda x : len(x), reverse = True)
+        documents.sort(key=lambda x: len(x), reverse=True)
 
-            while(len(documents) > 1):
-                list1 = documents.pop()
-                list2 = documents.pop()
+        while(len(documents) > 1):
+            list1 = documents.pop()
+            list2 = documents.pop()
 
-                ptr1 = 0
-                ptr2 = 0
-                
-                intersection = []
+            ptr1 = 0
+            ptr2 = 0
 
-                while(ptr1 < len(list1) and ptr2 < len(list2)):
-                    fileNo1 = list1[ptr1][0][0]
-                    rowNo1 = list1[ptr1][0][1]
-                    fileNo2 = list2[ptr2][0][0]
-                    rowNo2 = list2[ptr2][0][1]
+            intersection = []
 
-                    if(fileNo1 == fileNo2 and rowNo1 == rowNo2):
-                        intersection.append((list1[ptr1][0], []))
-                        ptr1 += 1
-                        ptr2 += 1
-                    elif(fileNo1 == fileNo2 and rowNo1 < rowNo2):
-                        ptr1 += 1
-                    elif(fileNo1 == fileNo2 and rowNo1 > rowNo2):
-                        ptr2 += 1
-                    elif(fileNo1 < fileNo2):
-                        ptr1 += 1
-                    elif(fileNo1 > fileNo2):
-                        ptr2 += 1
-                    print(ptr1,ptr2)
-                documents.append(intersection)
-            
-            docNolist = [x[0] for x in documents[0]]
-            return docNolist
+            while(ptr1 < len(list1) and ptr2 < len(list2)):
+                fileNo1 = list1[ptr1][0][0]
+                rowNo1 = list1[ptr1][0][1]
+                fileNo2 = list2[ptr2][0][0]
+                rowNo2 = list2[ptr2][0][1]
+
+                if(fileNo1 == fileNo2 and rowNo1 == rowNo2):
+                    intersection.append((list1[ptr1][0], []))
+                    ptr1 += 1
+                    ptr2 += 1
+                elif(fileNo1 == fileNo2 and rowNo1 < rowNo2):
+                    ptr1 += 1
+                elif(fileNo1 == fileNo2 and rowNo1 > rowNo2):
+                    ptr2 += 1
+                elif(fileNo1 < fileNo2):
+                    ptr1 += 1
+                elif(fileNo1 > fileNo2):
+                    ptr2 += 1
+                print(ptr1, ptr2)
+            documents.append(intersection)
+
+        docNolist = [x[0] for x in documents[0]]
+        return docNolist
 
     def updateIndex(self, docTokens, docId):
         """
