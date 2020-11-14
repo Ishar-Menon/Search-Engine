@@ -60,15 +60,14 @@ def preProcess(text, queryType=-1):
         tokens = text.split()
 
         token_list = []
-        idx = 0
-        for token in tokens:
-            if re.findall('/[0-9]+', token):
-                metadata[(idx - 1, idx)] = tokens[idx].lstrip('/')
-                idx += 1
-                continue
 
-            token_list.append(token)
-            idx += 1
+        otherIndex = 0
+        for index,token in enumerate(tokens):
+            if re.findall('/[0-9]+', token):
+                metadata[(otherIndex - 1, otherIndex)] = int(tokens[index].lstrip('/'))
+            else:
+                otherIndex += 1
+                token_list.append(token)
 
         for i in range(len(token_list)):
             if token_list[i][0] == '*':

@@ -23,8 +23,8 @@ class SearchEngine:
             JSON formatted document output
         """
 
-        termList, queryMetadata = preProcess(query, True, queryType)
-        print(termList)
+        termList, queryMetadata = preProcess(query, queryType)
+        print(termList, queryMetadata)
         docList = self._index.getDocuments(termList, queryType, queryMetadata)
         print(len(docList))
         rankedDocList = self._vectorSpace.vectorSpaceRank(docList, termList)
