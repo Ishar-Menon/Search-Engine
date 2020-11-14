@@ -23,13 +23,10 @@ class VectorSpace:
     def buildVector(self,_index):
         print("starting")
         terms = list(_index.getKeys())
-        self.totalTerms = len(terms)
-        #print(self.totalTerms)
         termValues = list(_index.getValues())
         for word,postingList in zip(terms,termValues):
             numDocs = len(postingList)
             ratioOfDocs = self.N / numDocs
-            #print(ratioOfDocs)
             idf = math.log10(ratioOfDocs)
             self.i=self.i+1
             for docTuple in postingList:
@@ -42,7 +39,6 @@ class VectorSpace:
                     self.docVectors[documentNo]=[]
                     self.docVectors[documentNo].append((self.i,tf*idf))
         
-            #print(self.i," ",idf)
             self.wordIndex[word]=(self.i,idf)
         print("ending")    
 
@@ -58,7 +54,9 @@ class VectorSpace:
     def getDocVector(self,docList):
         docVector = [0]*self.totalTerms
         for tempTuple in docList:
-            docVector[tempTuple[0]]=tempTuple[1]
+            index=tempTuple[0]
+            actualIndex = self.indexDict[index]
+            docVector[actualIndex]=tempTuple[1]
         docVector=normalize(docVector)
         return docVector
 
@@ -72,6 +70,19 @@ class VectorSpace:
         Returns:
         Ranked list of document numbers
         """
+        uniqueIndexes = {}
+        for docs in documents:
+            for indexTuple in self.docVectors[docs]:
+                uniqueIndexes[indexTuple[0]]=1
+            
+        indicesList=list(uniqueIndexes.keys())
+        self.totalTerms=len(indicesList)
+        self.indexDict={}
+        var=0
+        for indexValue in indicesList:
+            self.indexDict[indexValue]=var
+            var=var+1
+
         queryVector = self.getQueryVector(query)
         rankList = []
         for doc in documents:
@@ -98,11 +109,12 @@ class VectorSpace:
         queryVector =[0]*self.totalTerms
         for word in queryCount:
             index = self.wordIndex[word][0]
+            actualIndex = self.indexDict[index]
             idf = self.wordIndex[word][1]
             freq = queryCount[word]
             tf = 1+(math.log10(freq))
             value = tf*idf
-            queryVector[index]=value
+            queryVector[actualIndex]=value
         
         queryVector = normalize(queryVector)
         return queryVector
