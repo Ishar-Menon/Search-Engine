@@ -4,7 +4,7 @@ import sys
 from BTrees.OOBTree import OOBTree as BTree
 from preProcess import preProcess
 from readData import getSnippets
-
+from collections import defaultdict
 
 class InvertedIndex:
     def __init__(self):
@@ -61,16 +61,7 @@ class InvertedIndex:
         return self._btree.values()
         
 
-    def getDocuments(self, termList):
-        """
-            Finds the documents containing the terms
-
-            Arguments:
-            termList - List of query terms
-
-            Returns:
-            List of document numbers
-        """
+    def getPostingListCollection(self, termList):
 
         result = []
 
@@ -81,14 +72,93 @@ class InvertedIndex:
             else:
                 result.append([])
 
-        docList = self.documentIntersection(result)
+        return result
+
+    def getwildcardMatchedTerms(self, wildcardTerm):
+        pass
+
+    def wildCardPostingList(self, wildcardTerm):
+        
+        terms = getwildcardMatchedTerms(wildcardTerm)
+        postingListCollection = getPostingListCollection(terms)
+        merged = defaultdict(int)
+        for postingList in postingListCollection:
+            for doc in postingList:
+                if(merged[doc[0]] == 0):
+                     merged[doc[0]] = doc[1]
+                else:
+                    merged[doc[0]] = merged[doc[0]] + doc[1]
+        
+        mergedPostingList = []
+        for docNo in merged:
+            merged[docNo].sort()
+            mergedPostingList.append((docNo,merged[docNo]))
+
+        return mergedPostingList 
+
+    def wildcardQueryPostingListCollection(self, termList, queryMetadata):
+        
+        postingListCollection = []
+
+        for index,term in enumerate(termList):
+            if(queryMetadata[index] == 1) :
+                postingList = self.wildCardPostingList(term)
+            else :
+                postingList = self._btree.get(term)
+                if(postingList == None):
+                    postingList = []
+            postingListCollection.append(postingList)
+
+    def documentUnion(self,postingListCollection):
+        docList = set()
+        for postingList in postingListCollection:
+            for doc in postingList:
+                docList.add(doc[0])
+            
         return docList
 
-    def documentIntersection(self,documents):
+    def getDocuments(self, termList, queryType = 0, queryMetadata = defaultdict(int)):
+        """
+            Finds the documents containing the terms
 
-            documents.sort(key = lambda x : len(x), reverse = True)
+            Arguments:
+            termList - List of query terms
+
+            Returns:
+            List of document numbers
+        """
+        docList = []
+
+        # Union
+        if(queryType == 0):
+            postingListCollection = self.getPostingListCollection(termList)
+            docList =  self.documentUnion(postingListCollection)
+
+        # intersection/positional
+        elif(queryType == 1):
+            postingListCollection = self.getPostingListCollection(termList)
+            docList = self.documentIntersection(postingListCollection, queryMetadata)
+
+        # wildcard - union
+        elif(queryType == 2):
+            postingListCollection = self.wildcardQueryPostingListCollection(termList, queryMetadata)
+            docList = self.documentUnion(postingListCollection)
+        
+        # wildcard - intersection/positional
+        elif(queryType == 3):
+            postingListCollection = self.wildcardQueryPostingListCollection(termList, queryMetadata)
+            docList = self.documentIntersection(postingListCollection)
+
+        return docList
+
+    def documentIntersection(self,documents, queryMetadata):
 
             while(len(documents) > 1):
+                isPositional = False
+                diff = queryMetadata[(len(documents) - 2,len(documents) - 1)] 
+                if( diff != 0):
+                    isPositional = True
+
                 list1 = documents.pop()
                 list2 = documents.pop()
 
@@ -98,13 +168,23 @@ class InvertedIndex:
                 intersection = []
 
                 while(ptr1 < len(list1) and ptr2 < len(list2)):
+
                     fileNo1 = list1[ptr1][0][0]
                     rowNo1 = list1[ptr1][0][1]
                     fileNo2 = list2[ptr2][0][0]
                     rowNo2 = list2[ptr2][0][1]
 
                     if(fileNo1 == fileNo2 and rowNo1 == rowNo2):
-                        intersection.append((list1[ptr1][0], []))
+                        if(isPositional) :
+                            for postion1 in list1[ptr1][1]:
+                                for postion2 in list2[ptr2][1]:
+                                    if((postion1 - postion2 + 1)  == diff):
+                                        if(len(intersection) == 0 or intersection[-1][0] != list1[ptr1][0]):
+                                            intersection.append((list1[ptr1][0], [postion2]))
+                                        elif(intersection[-1][0] == list1[ptr1][0]):
+                                            intersection[-1][1].append(postion2)
+                        else :
+                            intersection.append((list1[ptr1][0], list2[ptr2][1]))
                         ptr1 += 1
                         ptr2 += 1
                     elif(fileNo1 == fileNo2 and rowNo1 < rowNo2):
@@ -115,9 +195,8 @@ class InvertedIndex:
                         ptr1 += 1
                     elif(fileNo1 > fileNo2):
                         ptr2 += 1
-                    print(ptr1,ptr2)
+                    
                 documents.append(intersection)
-            
             docNolist = [x[0] for x in documents[0]]
             return docNolist
 
