@@ -10,13 +10,13 @@ from contractions import contractions_dict
 from autocorrect import Speller
 
 
-def preProcess(text, isQuery=False):
+def preProcess(text, queryType=-1):
     """ 
     Performs pre processing on the given query
 
     Arguments:
     text - The text data that is to be preprocessed
-    isQuery - Indicative of whether the text is a query
+    queryType - Indicative of whether the text is a query, or part of the corpora
 
     Returns:
     List of terms
@@ -33,6 +33,21 @@ def preProcess(text, isQuery=False):
         expanded_contraction = expanded_contraction
         return expanded_contraction
 
+    def lemmatize_tokens(tokens):
+        tag_map = defaultdict(lambda: wn.NOUN)
+        tag_map['J'] = wn.ADJ
+        tag_map['V'] = wn.VERB
+        tag_map['R'] = wn.ADV
+
+        lemma_function = WordNetLemmatizer()
+        lemmatized_tokens = []
+        for token, tag in pos_tag(tokens):
+            lemma = lemma_function.lemmatize(token, tag_map[tag[0]])
+            lemmatized_tokens.append(lemma)
+
+        return lemmatized_tokens
+
+    metadata = defaultdict(int)
     contractions_pattern = re.compile('({})'.format('|'.join(contractions_dict.keys())),
                                       flags=re.IGNORECASE | re.DOTALL)
     expanded_text = contractions_pattern.sub(expand_match, text)
@@ -40,10 +55,36 @@ def preProcess(text, isQuery=False):
     text = expanded_text
 
     text = text.lower()
+
+    if queryType > 0:
+        tokens = text.split()
+
+        token_list = []
+        idx = 0
+        for token in tokens:
+            if re.findall('/[0-9]+', token):
+                metadata[(idx - 1, idx)] = tokens[idx].lstrip('/')
+                idx += 1
+                continue
+
+            token_list.append(token)
+            idx += 1
+
+        for i in range(len(token_list)):
+            if token_list[i][0] == '*':
+                metadata[i] = 1
+                token_list[i] = token_list[i].lstrip('*')
+            elif token_list[i][-1] == '*':
+                metadata[i] = 2
+                token_list[i] = token_list[i].rstrip('*')
+
+        lemmatized_tokens = lemmatize_tokens(token_list)
+        return (lemmatized_tokens, metadata)
+
     text = strip_punctuation(text)
     tokens = word_tokenize(text)
 
-    if isQuery:
+    if queryType != -1:
         spell = Speller(lang='en')
         tokens = [spell(w) for w in tokens]
 
@@ -58,27 +99,18 @@ def preProcess(text, isQuery=False):
             continue
 
         tokens_removed_stopwords.append(token)
-        if not isQuery:
+        if queryType == -1:
             tokens_with_pos.append((token, pos))
 
         pos += 1
 
-    tag_map = defaultdict(lambda: wn.NOUN)
-    tag_map['J'] = wn.ADJ
-    tag_map['V'] = wn.VERB
-    tag_map['R'] = wn.ADV
+    lemmatized_tokens = lemmatize_tokens(tokens_removed_stopwords)
 
-    lemmatized_tokens = []
-    lemma_function = WordNetLemmatizer()
-    for token, tag in pos_tag(tokens_removed_stopwords):
-        lemma = lemma_function.lemmatize(token, tag_map[tag[0]])
-        lemmatized_tokens.append(lemma)
-
-    if isQuery:
-        return lemmatized_tokens
+    if queryType != -1:
+        return (lemmatized_tokens, metadata)
 
     for idx in range(len(lemmatized_tokens)):
         lemmatized_tokens[idx] = (
             lemmatized_tokens[idx], tokens_with_pos[idx][1])
 
-    return lemmatized_tokens
+    return (lemmatized_tokens, metadata)

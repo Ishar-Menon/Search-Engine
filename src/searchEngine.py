@@ -12,22 +12,21 @@ class SearchEngine:
         self._index = InvertedIndex()
         self._vectorSpace = VectorSpace(self._index)
 
-    def search(self, query):
+    def search(self, query, queryType):
         """
-            Searches the IR system for relavent documets
+            Searches the IR system for relevant documents
 
             Arguments:
-            query - string query
+            query - String query
 
             Returns:
-            JSON formatted documet output
+            JSON formatted document output
         """
 
-        termList = preProcess(query, True)
+        termList, queryMetadata = preProcess(query, True, queryType)
         print(termList)
-        queryMetadata = {(0,1) : 2, (1,2) : 4, (2,3) : 2}
-        docList = self._index.getDocuments(termList,1,queryMetadata)
+        docList = self._index.getDocuments(termList, queryType, queryMetadata)
         print(len(docList))
-        rankedDocList = self._vectorSpace.vectorSpaceRank(docList,termList)
+        rankedDocList = self._vectorSpace.vectorSpaceRank(docList, termList)
         #output = generateOutput(rankedDocList)
         return rankedDocList
