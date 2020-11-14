@@ -26,7 +26,7 @@ class SearchEngine:
         termList = preProcess(query, True)
         print(termList)
         queryMetadata = {(0,1) : 2, (1,2) : 4, (2,3) : 2}
-        docList = self._index.getDocuments(termList,1,queryMetadata)
+        docList = self._index.getDocuments(termList,0)
         print(len(docList))
         rankedDocList = self._vectorSpace.vectorSpaceRank(docList,termList)
         #output = generateOutput(rankedDocList)
