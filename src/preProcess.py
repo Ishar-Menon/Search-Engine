@@ -62,23 +62,21 @@ def preProcess(text, queryType=-1):
         token_list = []
 
         otherIndex = 0
-        for index,token in enumerate(tokens):
+        for index, token in enumerate(tokens):
             if re.findall('/[0-9]+', token):
-                metadata[(otherIndex - 1, otherIndex)] = int(tokens[index].lstrip('/'))
+                metadata[(otherIndex - 1, otherIndex)
+                         ] = int(tokens[index].lstrip('/'))
             else:
                 otherIndex += 1
                 token_list.append(token)
 
         for i in range(len(token_list)):
-            if token_list[i][0] == '*':
-                metadata[i] = 1
-                token_list[i] = token_list[i].lstrip('*')
-            elif token_list[i][-1] == '*':
-                metadata[i] = 2
-                token_list[i] = token_list[i].rstrip('*')
+            if token_list[i][0] == '*' or token_list[i][-1] == '*':
+                continue
 
-        lemmatized_tokens = lemmatize_tokens(token_list)
-        return (lemmatized_tokens, metadata)
+            token_list[i] = lemmatize_tokens([token_list[i]])[0]
+
+        return (token_list, metadata)
 
     text = strip_punctuation(text)
     tokens = word_tokenize(text)
