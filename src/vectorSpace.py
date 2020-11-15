@@ -15,6 +15,7 @@ class VectorSpace:
     def __init__(self,_index):
         super().__init__()
         self.N = 94858
+        self.myBtree=_index
         self.docVectors ={}
         self.wordIndex ={}
         self.i=-1
@@ -70,11 +71,13 @@ class VectorSpace:
         Returns:
         Ranked list of document numbers
         """
+        if len(documents)==0:
+            return []
         uniqueIndexes = {}
         for docs in documents:
             for indexTuple in self.docVectors[docs]:
                 uniqueIndexes[indexTuple[0]]=1
-            
+        
         indicesList=list(uniqueIndexes.keys())
         self.totalTerms=len(indicesList)
         self.indexDict={}
@@ -82,6 +85,7 @@ class VectorSpace:
         for indexValue in indicesList:
             self.indexDict[indexValue]=var
             var=var+1
+
 
         queryVector = self.getQueryVector(query)
         rankList = []
@@ -101,11 +105,12 @@ class VectorSpace:
     def getQueryVector(self,query):
         queryCount = {} 
         for word in query:
-            if word in queryCount:
-                queryCount[word]=queryCount[word]+1
-            else:
-                queryCount[word]=1
-        
+            if word in self.myBtree.getKeys():
+                if word in queryCount:
+                    queryCount[word]=queryCount[word]+1
+                else:
+                    queryCount[word]=1
+        print(queryCount)
         queryVector =[0]*self.totalTerms
         for word in queryCount:
             index = self.wordIndex[word][0]
