@@ -23,11 +23,13 @@ class InvertedIndex:
             Returns:
             None
         """
-        try:
-            fh = open("Btree.txt", "rb")
-            self._btree = pickle.load(fh)
 
-        except FileNotFoundError:
+        if os.path.isfile("InvertedIndex"):
+            print("Loading the Inverted Index from file")
+            with open("InvertedIndex", "rb") as file:
+                self._btree = pickle.load(file)
+        else:
+            print("Building the Inverted Index")
             dirPath = os.path.dirname(os.path.realpath(__file__))
             dataPath = os.path.realpath(os.path.join(dirPath, "..", "data"))
             files = [os.path.join(dataPath, file)
@@ -38,15 +40,15 @@ class InvertedIndex:
                 for index, snippet in enumerate(snippets):
                     filename = int(os.path.split(file)[1].split(".csv")[0])
                     docId = (filename, index+2)
-                    tokens = preProcess(snippet)
+                    tokens, snippetMetadata = preProcess(snippet)
                     self.updateIndex(tokens, docId)
 
             self.sortPostingLists()
 
             sys.setrecursionlimit(10000)
-
-            with open("Btree.txt", 'wb') as fh:
-                pickle.dump(self._btree, fh)
+            with open("InvertedIndex", "wb") as file:
+                print("Saving the Inverted Index to file")
+                pickle.dump(self._btree, file)
 
     def sortPostingLists(self):
         words = list(self.getKeys())
