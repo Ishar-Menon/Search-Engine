@@ -74,41 +74,6 @@ class InvertedIndex:
 
         return result
 
-    def getwildcardMatchedTerms(self, wildcardTerm):
-        pass
-
-    def wildCardPostingList(self, wildcardTerm):
-
-        terms = getwildcardMatchedTerms(wildcardTerm)
-        postingListCollection = getPostingListCollection(terms)
-        merged = defaultdict(int)
-        for postingList in postingListCollection:
-            for doc in postingList:
-                if(merged[doc[0]] == 0):
-                    merged[doc[0]] = doc[1]
-                else:
-                    merged[doc[0]] = merged[doc[0]] + doc[1]
-
-        mergedPostingList = []
-        for docNo in merged:
-            merged[docNo].sort()
-            mergedPostingList.append((docNo, merged[docNo]))
-
-        return mergedPostingList
-
-    def wildcardQueryPostingListCollection(self, termList, queryMetadata):
-
-        postingListCollection = []
-
-        for index, term in enumerate(termList):
-            if(queryMetadata[index] == 1):
-                postingList = self.wildCardPostingList(term)
-            else:
-                postingList = self._btree.get(term)
-                if(postingList == None):
-                    postingList = []
-            postingListCollection.append(postingList)
-
     def documentUnion(self, postingListCollection):
         docList = set()
         for postingList in postingListCollection:
@@ -139,18 +104,6 @@ class InvertedIndex:
             postingListCollection = self.getPostingListCollection(termList)
             docList = self.documentIntersection(
                 postingListCollection, queryMetadata)
-
-        # wildcard - union
-        elif(queryType == 2):
-            postingListCollection = self.wildcardQueryPostingListCollection(
-                termList, queryMetadata)
-            docList = self.documentUnion(postingListCollection)
-
-        # wildcard - intersection/positional
-        elif(queryType == 3):
-            postingListCollection = self.wildcardQueryPostingListCollection(
-                termList, queryMetadata)
-            docList = self.documentIntersection(postingListCollection)
 
         return docList
 
