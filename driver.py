@@ -52,18 +52,18 @@ if __name__ == "__main__":
         modified_output = {"took": end - start, "total": len(res), "hits": []}
         for doc_q in res:
             for doc in doc_q:
-                res_file = os.path.join(dataPath, str(doc[0]) + ".csv")
+                res_file = os.path.join(dataPath, str(doc[0][0]) + ".csv")
                 with open(res_file) as fd:
                     reader = csv.DictReader(fd)
                     
                     row_no = 0
                     for row in reader:
-                        if row_no == doc[1] - 2:
+                        if row_no == doc[0][1] - 2:
                             current_row = row
                             break
                         row_no += 1
 
-                    modified_output["hits"].append({**{"id": doc}, **current_row})
+                    modified_output["hits"].append({**{"id": doc[0]}, **{"score": doc[1]}, **current_row})
         print(json.dumps(modified_output, indent=1))
                 
         if queryType == 0:
