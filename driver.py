@@ -66,7 +66,7 @@ if __name__ == "__main__":
                     modified_output["hits"].append({**{"id": doc[0]}, **{"score": doc[1]}, **current_row})
         print(json.dumps(modified_output, indent=1))
                 
-        if queryType == 0:
+        if int(queryType) == 0:
             query_body = {
                 "query": {
                     "match": {
@@ -81,10 +81,11 @@ if __name__ == "__main__":
                 es_docs.append(doc["_source"]["id"])
             
             correct_docs = 0
-            for doc, row in res:
-                if [doc, row] in es_docs:
-                    correct_docs += 1
+            for doc_q in res:
+                for doc, row in doc_q:
+                    if [doc, row] in es_docs:
+                        correct_docs += 1
             
-            precision = correct_docs / len(res)
+            precision = correct_docs / len(res[0])
             print("\nPrecision = ", precision)
     
