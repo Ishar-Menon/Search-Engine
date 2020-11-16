@@ -31,8 +31,8 @@ class SearchEngine:
             docList = self._index.getDocuments(
                 termList, queryType, queryMetadata)
             # print(len(docList))
-            rankedDocList = self._vectorSpace.vectorSpaceRank(
-                docList, termList)
+            rankedDocList = [self._vectorSpace.vectorSpaceRank(
+                docList, termList)]
             #output = generateOutput(rankedDocList)
 
         else:
